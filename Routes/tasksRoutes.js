@@ -21,7 +21,7 @@ route.route('/:id')
     .get(tasksController.getTimeLeft)
     .patch(tasksController.updateTask)
     .patch(tasksController.updateProgressStatus)
-//     .delete(tasksController.deleteTask)
+    .delete(tasksController.deleteTask)
 
 
 

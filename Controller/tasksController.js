@@ -76,6 +76,22 @@ exports.updateProgressStatus = async (req, res) => {
     }
 }
 
+exports.deleteTask = async (req, res) => {
+    try {
+        const task = await Tasks.findByIdAndDelete(req.params.id);
+
+        res.status(204).json({
+            status: 'success',
+            data: null
+        });
+    } catch (err) {
+        res.status(404).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+}
+
 const calculateTimeLeft = (deadline) => {
     let timeDifference = deadline - Date.now();
 
