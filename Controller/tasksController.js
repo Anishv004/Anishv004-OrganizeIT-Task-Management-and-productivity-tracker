@@ -290,3 +290,47 @@ exports.getAllOngoing = async (req, res) => {
         });
     }
 }
+
+// Get all tasks grouped by tag wise
+exports.getAllTasksGrouped = async (req, res) => {
+    try {
+        const tasks = await Tasks.aggregate([
+            {
+                $group: {
+                    _id: "$tags",  // Group by the tags field
+                    tasks: {
+                        $push: {
+                            id: "$_id",
+                            title: "$title",
+                            description: "$description",
+                            dateCreated: "$dateCreated",
+                            deadline: "$deadline",
+                            tentativeCompletionDate: "$tentativeCompletionDate",
+                            remarks: "$remarks",
+                            progress: "$progress"
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    tag: "$_id",  // Renaming _id field to tag
+                    tasks: {
+                        $sortArray: { input: "$tasks", sortBy: { deadline: 1 } }  // Sort tasks by deadline in ascending order
+                    }
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            status: 'success',
+            data: tasks
+        });
+    } catch (err) {
+        res.status(404).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+}

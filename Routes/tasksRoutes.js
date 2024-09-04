@@ -7,6 +7,9 @@ route.route('/')
     .get(tasksController.getAllTasks)
     .post(tasksController.addNewTask)
 
+route.route('/grouped')
+    .get(tasksController.getAllTasksGrouped)
+
 route.route('/dues')
     .get(tasksController.getAllDues)
 
@@ -22,7 +25,5 @@ route.route('/:id')
     .patch(tasksController.updateTask)
     .patch(tasksController.updateProgressStatus)
     .delete(tasksController.deleteTask)
-
-
 
 module.exports = route;

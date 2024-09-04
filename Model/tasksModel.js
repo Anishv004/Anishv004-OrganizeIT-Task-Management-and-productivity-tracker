@@ -27,7 +27,8 @@ const tasksSchema = new mongoose.Schema({
         trim: true 
     },
     tags: { 
-        type: String 
+        type: String,
+        default: 'Unknown' 
     },
     progress: {
         type: String,
