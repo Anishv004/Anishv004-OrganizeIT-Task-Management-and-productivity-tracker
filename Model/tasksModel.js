@@ -33,6 +33,25 @@ const tasksSchema = new mongoose.Schema({
     progress: {
         type: String,
         default: "Yet to Start"
+    },
+    recurring: {
+        type: Number,
+        default: 0
+    },
+    repeatAfter: {
+        // No. of days
+        type: Number
+    },
+    repeatEveryWeek: {
+        // Day number of week (0-6)
+        type: Number
+    },
+    repeatEveryMonth: {
+        // Date
+        type: Number
+    },
+    numberOfIterations: {
+        type: Number
     }
 });
 

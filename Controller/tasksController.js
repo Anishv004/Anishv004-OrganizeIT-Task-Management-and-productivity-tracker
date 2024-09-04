@@ -1,8 +1,71 @@
 const Tasks = require('../Model/tasksModel');
 
+// exports.addNewTask = async (req, res) => {
+//     try{
+//         const tasks = await Tasks.create(req.body);
+
+//         res.status(201).json({
+//             status: 'success',
+//             data: {
+//                 tasks: tasks
+//             }
+//         });
+//     } catch (err) {
+//         res.status(404).json({
+//             status: 'fail',
+//             message: err.message
+//         });
+//     }
+// } 
+
 exports.addNewTask = async (req, res) => {
-    try{
-        const tasks = await Tasks.create(req.body);
+    try {
+        const { recurring, repeatAfter, repeatEveryWeek, repeatEveryMonth, numberOfIterations, ...taskData } = req.body;
+        let tasks = [];
+
+        // If the task is non-recurring, create just one task
+        if (recurring === 0) {
+            // delete req.body.repeatAfter;
+            // delete req.body.repeatEveryWeek;
+            // delete req.body.repeatEveryMonth;
+            const newTask = await Tasks.create(taskData);
+            tasks.push(newTask);
+        } else if(recurring === 1){
+
+            if ((repeatAfter && (repeatEveryWeek || repeatEveryMonth)) ||
+                (repeatEveryWeek && (repeatAfter || repeatEveryMonth)) ||
+                (repeatEveryMonth && (repeatAfter || repeatEveryWeek))) {
+                return res.status(400).json({
+                    status: 'fail',
+                    message: 'Only one of repeatAfter, repeatEveryWeek, or repeatEveryMonth should be provided when recurring is 1'
+                });
+            }
+            
+            for (let i = 0; i < req.body.numberOfIterations; i++) {
+                let newTaskData = { ...taskData };
+
+                // Calculate the new deadline based on the recurrence pattern
+                let newDeadline = new Date(taskData.deadline);
+
+                
+                if (req.body.repeatAfter) {
+                    newDeadline.setDate(newDeadline.getDate() + i * req.body.repeatAfter);
+                } else if (req.body.repeatEveryWeek) {
+                    newDeadline.setDate(newDeadline.getDate() + i * 7);
+                } else if (req.body.repeatEveryMonth) {
+                    newDeadline.setMonth(newDeadline.getMonth() + i);
+                }
+
+                newTaskData.deadline = newDeadline;
+                newTaskData.tentativeCompletionDate = newDeadline;
+
+                const newTask = await Tasks.create(newTaskData);
+
+                
+                tasks.push(newTask);
+            }
+        }
+
 
         res.status(201).json({
             status: 'success',
@@ -16,7 +79,7 @@ exports.addNewTask = async (req, res) => {
             message: err.message
         });
     }
-} 
+}
 
 exports.getAllTasks = async (req, res) => {
     try{
@@ -291,10 +354,15 @@ exports.getAllOngoing = async (req, res) => {
     }
 }
 
-// Get all tasks grouped by tag wise
+// Get all pending tasks grouped by tag wise
 exports.getAllTasksGrouped = async (req, res) => {
     try {
         const tasks = await Tasks.aggregate([
+            {
+                $match: {
+                    progress: { $ne: "Completed" }  // Exclude tasks with progress "Completed"
+                }
+            },
             {
                 $group: {
                     _id: "$tags",  // Group by the tags field
